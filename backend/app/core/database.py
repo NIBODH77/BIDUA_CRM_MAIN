@@ -75,14 +75,35 @@
 # database.py
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker, declarative_base
+from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
 import os
+import ssl
 
-DATABASE_URL = os.getenv(
-    "DATABASE_URL",
-    "postgresql+asyncpg://postgres:nibodh%40123@localhost/biduadb"
-)
+DATABASE_URL = os.getenv("DATABASE_URL")
+connect_args = {}
 
-async_engine = create_async_engine(DATABASE_URL, echo=False, future=True)
+if DATABASE_URL:
+    if DATABASE_URL.startswith("postgres://"):
+        DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql+asyncpg://", 1)
+    elif DATABASE_URL.startswith("postgresql://"):
+        DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://", 1)
+    
+    # Parse URL to handle sslmode parameter for asyncpg
+    parsed = urlparse(DATABASE_URL)
+    query_params = parse_qs(parsed.query)
+    
+    if 'sslmode' in query_params:
+        sslmode = query_params.pop('sslmode')[0]
+        if sslmode in ('require', 'verify-ca', 'verify-full'):
+            ssl_context = ssl.create_default_context()
+            ssl_context.check_hostname = False
+            ssl_context.verify_mode = ssl.CERT_NONE
+            connect_args['ssl'] = ssl_context
+        # Rebuild URL without sslmode
+        new_query = urlencode(query_params, doseq=True)
+        DATABASE_URL = urlunparse((parsed.scheme, parsed.netloc, parsed.path, parsed.params, new_query, parsed.fragment))
+
+async_engine = create_async_engine(DATABASE_URL, echo=False, future=True, connect_args=connect_args)
 
 AsyncSessionLocal = sessionmaker(
     bind=async_engine,
