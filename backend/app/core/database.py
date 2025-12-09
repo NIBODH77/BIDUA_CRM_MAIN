@@ -1,85 +1,20 @@
-
-
-# # from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
-# # from sqlalchemy.orm import sessionmaker, declarative_base
-# # import os
-# # # from app.core.settings import get_settings
-
-# # # setttings = get_settings()
-
-
-
-
-
-# # DATABASE_URL = os.getenv(
-# #     "DATABASE_URL",
-# #     "postgresql+asyncpg://postgres:nibodh%40123@localhost/odhreceptiondb"
-# # )
-
-# # engine = create_async_engine(DATABASE_URL, echo=False, future=True)
-
-# # AsyncSessionLocal = sessionmaker(
-# #     bind=engine,
-# #     class_=AsyncSession,
-# #     expire_on_commit=False,
-# #     autoflush=False,
-# #     autocommit=False
-# # )
-
-# # Base = declarative_base()
-
-# # async def get_db():
-# #     async with AsyncSessionLocal() as session:
-# #         yield session
-
-
-# # # ✅ ye function tables create karega
-# # async def init_db():
-# #     async with engine.begin() as conn:
-# #         await conn.run_sync(Base.metadata.create_all)
-
-
-
-# # def get_target_metadata():
-# #     return Base.metadata
-
-
-
-
-# from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
-# from sqlalchemy.orm import sessionmaker, declarative_base
-# import os
-
-# DATABASE_URL = os.getenv(
-#     "DATABASE_URL",
-#     "postgresql+asyncpg://postgres:nibodh%40123@localhost/odhreceptiondb"
-# )
-
-# # Async engine for app
-# async_engine = create_async_engine(DATABASE_URL, echo=False, future=True)
-
-# AsyncSessionLocal = sessionmaker(
-#     bind=async_engine,
-#     class_=AsyncSession,
-#     expire_on_commit=False
-# )
-
-# Base = declarative_base()
-
-# async def get_db():
-#     async with AsyncSessionLocal() as session:
-#         yield session
-
-
-
-# database.py
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker, declarative_base
-from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
+from typing import AsyncGenerator
 import os
+from dotenv import load_dotenv
+from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
 import ssl
 
+# Load environment variables
+load_dotenv()
+
+# Database configuration
 DATABASE_URL = os.getenv("DATABASE_URL")
+
+if not DATABASE_URL:
+    raise ValueError("DATABASE_URL environment variable is not set. Please check your .env file.")
+
 connect_args = {}
 
 if DATABASE_URL:
@@ -87,11 +22,11 @@ if DATABASE_URL:
         DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql+asyncpg://", 1)
     elif DATABASE_URL.startswith("postgresql://"):
         DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://", 1)
-    
+
     # Parse URL to handle sslmode parameter for asyncpg
     parsed = urlparse(DATABASE_URL)
     query_params = parse_qs(parsed.query)
-    
+
     if 'sslmode' in query_params:
         sslmode = query_params.pop('sslmode')[0]
         if sslmode in ('require', 'verify-ca', 'verify-full'):
@@ -115,7 +50,7 @@ AsyncSessionLocal = sessionmaker(
 
 Base = declarative_base()
 
-async def get_db():
+async def get_db() -> AsyncGenerator:
     async with AsyncSessionLocal() as session:
         yield session
 
