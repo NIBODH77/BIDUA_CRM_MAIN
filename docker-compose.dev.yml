@@ -1,0 +1,62 @@
+
+version: '3.8'
+
+services:
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    environment:
+      - VITE_API_BASE_URL=http://localhost:8000
+    networks:
+      - bidua-network
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://postgres:nibodh123@db:5432/bidua_db
+      - SECRET_KEY=logan
+      - DEBUG=true
+    depends_on:
+      - db
+      - redis
+    networks:
+      - bidua-network
+
+  db:
+    image: postgres:14-alpine
+    environment:
+      - POSTGRES_DB=bidua_db
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=nibodh123
+    volumes:
+      - postgres_dev_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - bidua-network
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    networks:
+      - bidua-network
+
+networks:
+  bidua-network:
+    driver: bridge
+
+volumes:
+  postgres_dev_data:
