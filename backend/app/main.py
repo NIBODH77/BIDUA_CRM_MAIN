@@ -175,7 +175,7 @@ app = FastAPI(
 # ✅ Step 1: CORS setup (ye zaroori hai React se connect hone ke liye)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=settings.BACKEND_CORS_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

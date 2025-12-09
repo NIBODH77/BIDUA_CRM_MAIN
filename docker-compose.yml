@@ -21,7 +21,7 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - DATABASE_URL=postgresql+asyncpg://postgres:nibodh%40123@db:5432/bidua_db
+      - DATABASE_URL=postgresql+asyncpg://postgres:nibodh123@db:5432/bidua_db
       - SECRET_KEY=logan
       - DEBUG=false
     depends_on:
@@ -36,7 +36,7 @@ services:
     environment:
       - POSTGRES_DB=bidua_db
       - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=nibodh@123
+      - POSTGRES_PASSWORD=nibodh123
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./backups:/backups
