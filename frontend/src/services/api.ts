@@ -33,7 +33,16 @@ apiClient.interceptors.request.use(
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
+    console.error('❌ API Error:', {
+      url: error.config?.url,
+      method: error.config?.method,
+      status: error.response?.status,
+      data: error.response?.data,
+      message: error.message
+    });
+    
     if (error.response?.status === 401) {
+      console.warn('🔒 Unauthorized - Redirecting to login');
       localStorage.removeItem('access_token');
       localStorage.removeItem('currentUser');
       window.location.href = '/';
