@@ -1107,15 +1107,6 @@ class TaskResponse(TaskBase, IDModel):
     class Config:
         from_attributes = True
 
-class PerformanceReviewUpdate(BaseModel):
-    review_type: Optional[ReviewType] = None
-    review_date: Optional[date] = None
-    reviewer_id: Optional[int] = None
-    status: Optional[ReviewStatus] = None
-    overall_rating: Optional[float] = None
-    comments: Optional[str] = None
-    goals: Optional[str] = None
-
 class TaskDependencyBase(BaseModel):
     depends_on_task_id: int
     dependency_type: DependencyType = DependencyType.finish_to_start
@@ -1183,6 +1174,15 @@ class PerformanceReviewBase(BaseModel):
 
 class PerformanceReviewCreate(PerformanceReviewBase):
     employee_id: int
+
+class PerformanceReviewUpdate(BaseModel):
+    review_type: Optional[ReviewType] = None
+    review_date: Optional[date] = None
+    reviewer_id: Optional[int] = None
+    status: Optional[ReviewStatus] = None
+    overall_rating: Optional[float] = None
+    comments: Optional[str] = None
+    goals: Optional[str] = None
 
 class PerformanceReviewResponse(PerformanceReviewBase, IDModel):
     employee_id: int
