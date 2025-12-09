@@ -1,0 +1,44 @@
+Missing Endpoints Jo Chahiye
+1. Admin Endpoints (Missing)
+/api/admin/dashboard - Admin dashboard stats
+/api/admin/users/bulk-actions - Bulk user operations
+/api/admin/system-settings - System configuration
+/api/admin/audit-logs - System audit logs
+/api/admin/reports/generate - Generate system reports
+2. Manager Endpoints (Missing)
+/api/manager/team-overview - Team performance overview
+/api/manager/approve-leaves - Approve/reject leave requests
+/api/manager/assign-tasks - Task assignment
+/api/manager/team-attendance - Team attendance summary
+/api/manager/performance-reviews - Initiate/view reviews
+3. Employee/Customer Endpoints (Partially Missing)
+/api/employee/my-tasks - Employee's assigned tasks
+/api/employee/my-leaves - Employee's leave history
+/api/employee/my-attendance - Employee's attendance records
+/api/employee/my-payslips - Employee's salary slips
+/api/employee/my-documents - Employee's documents
+/api/employee/notifications - Employee notifications
+4. CRM Endpoints (Missing)
+/api/crm/deals - Deal/opportunity management
+/api/crm/contacts - Contact management (separate from leads)
+/api/crm/companies - CRM companies (different from general companies)
+/api/crm/analytics - CRM analytics and reports
+/api/crm/email-integration - Email tracking
+5. HRMS Endpoints (Missing)
+/api/hrms/payroll/process - Process payroll (jo schema mein hai but endpoint nahi)
+/api/hrms/payroll/salary-slips - Generate salary slips
+/api/hrms/performance/reviews - Performance reviews
+/api/hrms/performance/goals - Goal management
+/api/hrms/tasks/templates - Task templates
+/api/hrms/projects - Project management
+6. Reports Endpoints (Missing)
+/api/reports/attendance - Attendance reports
+/api/reports/leave - Leave reports
+/api/reports/payroll - Payroll reports
+/api/reports/crm - CRM reports
+/api/reports/sales - Sales reports
+7. Document Management (Missing)
+/api/documents - Document CRUD
+/api/documents/{id}/download - Download document
+/api/documents/{id}/share - Share document
+/api/documents/versions - Document versioning

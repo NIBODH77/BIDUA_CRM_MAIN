@@ -2313,3 +2313,167 @@ class SupportTeamMember(Base):
         Index("ix_stm_team_active", "team_id", "active"),
         Index("ix_stm_employee", "employee_id"),
     )
+
+
+# --------------------------
+# Additional Models for Missing Endpoints
+# --------------------------
+
+class AuditLogAction(str, enum.Enum):
+    create = "create"
+    update = "update"
+    delete = "delete"
+    login = "login"
+    logout = "logout"
+    export = "export"
+    import_data = "import"
+    bulk_action = "bulk_action"
+
+class NotificationType(str, enum.Enum):
+    info = "info"
+    warning = "warning"
+    success = "success"
+    error = "error"
+    task = "task"
+    leave = "leave"
+    attendance = "attendance"
+    payroll = "payroll"
+
+class DealStage(str, enum.Enum):
+    prospecting = "prospecting"
+    qualification = "qualification"
+    proposal = "proposal"
+    negotiation = "negotiation"
+    closed_won = "closed-won"
+    closed_lost = "closed-lost"
+
+
+class AuditLog(Base):
+    __tablename__ = "audit_logs"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    action = Column(Enum(AuditLogAction), nullable=False)
+    entity_type = Column(String(100), nullable=False)
+    entity_id = Column(Integer, nullable=True)
+    old_values = Column(JSONB, nullable=True)
+    new_values = Column(JSONB, nullable=True)
+    ip_address = Column(INET, nullable=True)
+    user_agent = Column(Text, nullable=True)
+    description = Column(Text, nullable=True)
+    created_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
+
+    user = relationship("User", backref="audit_logs")
+
+    __table_args__ = (
+        Index("ix_audit_logs_user_id", "user_id"),
+        Index("ix_audit_logs_entity", "entity_type", "entity_id"),
+        Index("ix_audit_logs_created_at", "created_at"),
+    )
+
+
+class SystemSettings(Base):
+    __tablename__ = "system_settings"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    key = Column(String(100), unique=True, nullable=False)
+    value = Column(JSONB, nullable=True)
+    description = Column(Text, nullable=True)
+    category = Column(String(50), nullable=False, default="general")
+    is_public = Column(Boolean, default=False)
+    updated_by = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    updated_at = Column(TIMESTAMP(timezone=True), server_default=func.now(), onupdate=func.now())
+    created_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
+
+    __table_args__ = (
+        Index("ix_system_settings_category", "category"),
+    )
+
+
+class Notification(Base):
+    __tablename__ = "notifications"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    title = Column(String(255), nullable=False)
+    message = Column(Text, nullable=False)
+    type = Column(Enum(NotificationType), default=NotificationType.info)
+    is_read = Column(Boolean, default=False)
+    link = Column(String(500), nullable=True)
+    extra_data = Column(JSONB, nullable=True)
+    created_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
+    read_at = Column(TIMESTAMP(timezone=True), nullable=True)
+
+    user = relationship("User", backref="notifications")
+
+    __table_args__ = (
+        Index("ix_notifications_user_unread", "user_id", "is_read"),
+        Index("ix_notifications_created_at", "created_at"),
+    )
+
+
+class Contact(Base):
+    __tablename__ = "contacts"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    first_name = Column(String(100), nullable=False)
+    last_name = Column(String(100), nullable=True)
+    email = Column(String(255), nullable=True, index=True)
+    phone = Column(String(20), nullable=True)
+    mobile = Column(String(20), nullable=True)
+    company_id = Column(Integer, ForeignKey("companies.id", ondelete="SET NULL"), nullable=True)
+    job_title = Column(String(100), nullable=True)
+    department = Column(String(100), nullable=True)
+    address = Column(Text, nullable=True)
+    city = Column(String(100), nullable=True)
+    state = Column(String(100), nullable=True)
+    country = Column(String(100), nullable=True)
+    postal_code = Column(String(20), nullable=True)
+    notes = Column(Text, nullable=True)
+    source = Column(String(50), nullable=True)
+    owner_id = Column(Integer, ForeignKey("employees.id", ondelete="SET NULL"), nullable=True)
+    is_active = Column(Boolean, default=True)
+    created_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
+    updated_at = Column(TIMESTAMP(timezone=True), server_default=func.now(), onupdate=func.now())
+
+    company = relationship("Company", backref="contacts")
+    owner = relationship("Employee", backref="owned_contacts")
+
+    __table_args__ = (
+        Index("ix_contacts_company_id", "company_id"),
+        Index("ix_contacts_owner_id", "owner_id"),
+    )
+
+
+class Deal(Base):
+    __tablename__ = "deals"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    name = Column(String(255), nullable=False)
+    description = Column(Text, nullable=True)
+    value = Column(Numeric(15, 2), nullable=True)
+    currency = Column(String(3), default="INR")
+    stage = Column(Enum(DealStage), default=DealStage.prospecting)
+    probability = Column(Integer, default=0)
+    expected_close_date = Column(Date, nullable=True)
+    actual_close_date = Column(Date, nullable=True)
+    company_id = Column(Integer, ForeignKey("companies.id", ondelete="SET NULL"), nullable=True)
+    contact_id = Column(Integer, ForeignKey("contacts.id", ondelete="SET NULL"), nullable=True)
+    lead_id = Column(Integer, ForeignKey("leads.id", ondelete="SET NULL"), nullable=True)
+    owner_id = Column(Integer, ForeignKey("employees.id", ondelete="SET NULL"), nullable=True)
+    source = Column(String(50), nullable=True)
+    notes = Column(Text, nullable=True)
+    lost_reason = Column(Text, nullable=True)
+    created_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
+    updated_at = Column(TIMESTAMP(timezone=True), server_default=func.now(), onupdate=func.now())
+
+    company = relationship("Company", backref="deals")
+    contact = relationship("Contact", backref="deals")
+    lead = relationship("Lead", backref="deals")
+    owner = relationship("Employee", backref="owned_deals")
+
+    __table_args__ = (
+        Index("ix_deals_stage", "stage"),
+        Index("ix_deals_owner_id", "owner_id"),
+        Index("ix_deals_company_id", "company_id"),
+    )

@@ -1088,6 +1088,16 @@ class TaskCreate(TaskBase):
     project_id: int
     assigned_to: Optional[int] = None
 
+class TaskUpdate(BaseModel):
+    title: Optional[str] = None
+    description: Optional[str] = None
+    priority: Optional[TaskPriority] = None
+    status: Optional[str] = None
+    due_date: Optional[date] = None
+    estimated_hours: Optional[float] = None
+    actual_hours: Optional[float] = None
+    assigned_to: Optional[int] = None
+
 class TaskResponse(TaskBase, IDModel):
     project_id: int
     assigned_to: Optional[int] = None
@@ -1982,6 +1992,297 @@ class JournalEntryRead(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+# --------------------------
+# Additional Enums for Missing Endpoints
+# --------------------------
+
+class AuditLogAction(str, Enum):
+    create = "create"
+    update = "update"
+    delete = "delete"
+    login = "login"
+    logout = "logout"
+    export = "export"
+    import_data = "import"
+    bulk_action = "bulk_action"
+
+class NotificationType(str, Enum):
+    info = "info"
+    warning = "warning"
+    success = "success"
+    error = "error"
+    task = "task"
+    leave = "leave"
+    attendance = "attendance"
+    payroll = "payroll"
+
+class DealStage(str, Enum):
+    prospecting = "prospecting"
+    qualification = "qualification"
+    proposal = "proposal"
+    negotiation = "negotiation"
+    closed_won = "closed-won"
+    closed_lost = "closed-lost"
+
+
+# --------------------------
+# Audit Log Schemas
+# --------------------------
+
+class AuditLogBase(BaseModel):
+    action: AuditLogAction
+    entity_type: str
+    entity_id: Optional[int] = None
+    description: Optional[str] = None
+
+class AuditLogCreate(AuditLogBase):
+    old_values: Optional[Dict[str, Any]] = None
+    new_values: Optional[Dict[str, Any]] = None
+    ip_address: Optional[str] = None
+    user_agent: Optional[str] = None
+
+class AuditLogResponse(AuditLogBase):
+    id: int
+    user_id: Optional[int] = None
+    old_values: Optional[Dict[str, Any]] = None
+    new_values: Optional[Dict[str, Any]] = None
+    ip_address: Optional[str] = None
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+# --------------------------
+# System Settings Schemas
+# --------------------------
+
+class SystemSettingsBase(BaseModel):
+    key: str
+    value: Optional[Dict[str, Any]] = None
+    description: Optional[str] = None
+    category: str = "general"
+    is_public: bool = False
+
+class SystemSettingsCreate(SystemSettingsBase):
+    pass
+
+class SystemSettingsUpdate(BaseModel):
+    value: Optional[Dict[str, Any]] = None
+    description: Optional[str] = None
+    category: Optional[str] = None
+    is_public: Optional[bool] = None
+
+class SystemSettingsResponse(SystemSettingsBase):
+    id: int
+    updated_by: Optional[int] = None
+    updated_at: datetime
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+# --------------------------
+# Notification Schemas
+# --------------------------
+
+class NotificationBase(BaseModel):
+    title: str
+    message: str
+    type: NotificationType = NotificationType.info
+    link: Optional[str] = None
+
+class NotificationCreate(NotificationBase):
+    user_id: int
+    metadata: Optional[Dict[str, Any]] = None
+
+class NotificationUpdate(BaseModel):
+    is_read: Optional[bool] = None
+
+class NotificationResponse(NotificationBase):
+    id: int
+    user_id: int
+    is_read: bool
+    metadata: Optional[Dict[str, Any]] = None
+    created_at: datetime
+    read_at: Optional[datetime] = None
+
+    class Config:
+        from_attributes = True
+
+
+# --------------------------
+# Contact Schemas
+# --------------------------
+
+class ContactBase(BaseModel):
+    first_name: str
+    last_name: Optional[str] = None
+    email: Optional[str] = None
+    phone: Optional[str] = None
+    mobile: Optional[str] = None
+    company_id: Optional[int] = None
+    job_title: Optional[str] = None
+    department: Optional[str] = None
+    address: Optional[str] = None
+    city: Optional[str] = None
+    state: Optional[str] = None
+    country: Optional[str] = None
+    postal_code: Optional[str] = None
+    notes: Optional[str] = None
+    source: Optional[str] = None
+
+class ContactCreate(ContactBase):
+    owner_id: Optional[int] = None
+
+class ContactUpdate(BaseModel):
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    email: Optional[str] = None
+    phone: Optional[str] = None
+    mobile: Optional[str] = None
+    company_id: Optional[int] = None
+    job_title: Optional[str] = None
+    department: Optional[str] = None
+    address: Optional[str] = None
+    city: Optional[str] = None
+    state: Optional[str] = None
+    country: Optional[str] = None
+    postal_code: Optional[str] = None
+    notes: Optional[str] = None
+    source: Optional[str] = None
+    owner_id: Optional[int] = None
+    is_active: Optional[bool] = None
+
+class ContactResponse(ContactBase):
+    id: int
+    owner_id: Optional[int] = None
+    is_active: bool
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+# --------------------------
+# Deal Schemas
+# --------------------------
+
+class DealBase(BaseModel):
+    name: str
+    description: Optional[str] = None
+    value: Optional[Decimal] = None
+    currency: str = "INR"
+    stage: DealStage = DealStage.prospecting
+    probability: int = 0
+    expected_close_date: Optional[date] = None
+    source: Optional[str] = None
+    notes: Optional[str] = None
+
+class DealCreate(DealBase):
+    company_id: Optional[int] = None
+    contact_id: Optional[int] = None
+    lead_id: Optional[int] = None
+    owner_id: Optional[int] = None
+
+class DealUpdate(BaseModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+    value: Optional[Decimal] = None
+    currency: Optional[str] = None
+    stage: Optional[DealStage] = None
+    probability: Optional[int] = None
+    expected_close_date: Optional[date] = None
+    actual_close_date: Optional[date] = None
+    company_id: Optional[int] = None
+    contact_id: Optional[int] = None
+    lead_id: Optional[int] = None
+    owner_id: Optional[int] = None
+    source: Optional[str] = None
+    notes: Optional[str] = None
+    lost_reason: Optional[str] = None
+
+class DealResponse(DealBase):
+    id: int
+    actual_close_date: Optional[date] = None
+    company_id: Optional[int] = None
+    contact_id: Optional[int] = None
+    lead_id: Optional[int] = None
+    owner_id: Optional[int] = None
+    lost_reason: Optional[str] = None
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+# --------------------------
+# Dashboard Stats Schemas
+# --------------------------
+
+class AdminDashboardStats(BaseModel):
+    total_users: int
+    total_employees: int
+    total_leads: int
+    total_tickets: int
+    active_employees: int
+    pending_leaves: int
+    open_tickets: int
+    revenue_this_month: Decimal = Decimal("0")
+
+class ManagerTeamOverview(BaseModel):
+    team_size: int
+    present_today: int
+    on_leave: int
+    pending_leave_requests: int
+    active_tasks: int
+    completed_tasks: int
+
+class EmployeeDashboard(BaseModel):
+    pending_tasks: int
+    completed_tasks: int
+    leave_balance: Dict[str, int]
+    attendance_this_month: int
+    upcoming_reviews: int
+
+
+# --------------------------
+# Bulk Action Schemas
+# --------------------------
+
+class BulkUserAction(BaseModel):
+    user_ids: List[int]
+    action: str
+    params: Optional[Dict[str, Any]] = None
+
+class BulkActionResponse(BaseModel):
+    success: bool
+    affected_count: int
+    message: str
+    failed_ids: List[int] = []
+
+
+# --------------------------
+# Report Schemas
+# --------------------------
+
+class ReportRequest(BaseModel):
+    report_type: str
+    start_date: Optional[date] = None
+    end_date: Optional[date] = None
+    filters: Optional[Dict[str, Any]] = None
+    format: str = "json"
+
+class ReportResponse(BaseModel):
+    report_type: str
+    generated_at: datetime
+    data: List[Dict[str, Any]]
+    summary: Optional[Dict[str, Any]] = None
 
 
 
