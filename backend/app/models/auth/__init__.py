@@ -1,5 +1,5 @@
 
-from .user import User
+from .user import User, UserRoleEnum
 from .role import Role
 from .permission import Permission
 

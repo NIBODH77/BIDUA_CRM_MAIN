@@ -45,6 +45,15 @@ waitForPort = 8000
 [workflows.workflow.metadata]
 outputType = "console"
 
+[[workflows.workflow]]
+name = "Backend Server"
+author = 51076611
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd backend && uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
+
 [[ports]]
 localPort = 5000
 externalPort = 80
