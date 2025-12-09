@@ -67,13 +67,7 @@ from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession  # ✅ AsyncSession
 from sqlalchemy import select # ✅ Async queries
-from app.models.models import Base  # ✅ Import Base from your models
-
-from sqlalchemy.orm import DeclarativeBase
-from typing import TypeVar
-
-class Base(DeclarativeBase):
-    pass
+from app.core.database import Base  # ✅ Import Base from database
 
 ModelType = TypeVar("ModelType", bound=Base)
 CreateSchemaType = TypeVar("CreateSchemaType", bound=BaseModel)

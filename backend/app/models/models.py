@@ -213,7 +213,8 @@ user_role = Table(
 
 
 # User model is imported from app.models.auth.user
-# No need to define it again here
+# Role and Permission models are imported from app.models.auth.role and app.models.auth.permission
+# No need to define them again here
 
 
 class UserSession(Base):
@@ -230,27 +231,6 @@ class UserSession(Base):
     is_active = Column(Boolean, default=True)
 
     user = relationship("User", back_populates="sessions")
-
-
-class Role(Base):
-    __tablename__ = "roles"
-
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    name = Column(String(100), unique=True, nullable=False)
-    description = Column(String(255), nullable=True)
-
-    permissions = relationship("Permission", secondary=role_permission, back_populates="roles")
-    users = relationship("User", secondary=user_role, back_populates="roles")
-
-
-class Permission(Base):
-    __tablename__ = "permissions"
-
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    code = Column(String(128), unique=True, nullable=False)
-    description = Column(String(255), nullable=True)
-
-    roles = relationship("Role", secondary=role_permission, back_populates="permissions")
 
 
 # --------------------------
