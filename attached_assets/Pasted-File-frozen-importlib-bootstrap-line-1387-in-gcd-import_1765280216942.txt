@@ -1,0 +1,44 @@
+File "<frozen importlib._bootstrap>", line 1387, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1331, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 935, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 995, in exec_module
+  File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
+  File "/home/nibodh/Documents/BIDUA_CRM_MAIN/backend/app/main.py", line 154, in <module>
+    from app.api.v1.api import api_router  # ✅ import the router
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/nibodh/Documents/BIDUA_CRM_MAIN/backend/app/api/v1/api.py", line 5, in <module>
+    from app.api.v1.endpoints.auth import routes as auth_routes
+  File "/home/nibodh/Documents/BIDUA_CRM_MAIN/backend/app/api/v1/endpoints/auth/routes.py", line 9, in <module>
+    from app.crud.auth.user import user
+  File "/home/nibodh/Documents/BIDUA_CRM_MAIN/backend/app/crud/auth/__init__.py", line 2, in <module>
+    from .user import user
+  File "/home/nibodh/Documents/BIDUA_CRM_MAIN/backend/app/crud/auth/user.py", line 5, in <module>
+    from app.crud.base import CRUDBase
+  File "/home/nibodh/Documents/BIDUA_CRM_MAIN/backend/app/crud/base.py", line 70, in <module>
+    from app.models.models import Base  # ✅ Import Base from your models
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/nibodh/Documents/BIDUA_CRM_MAIN/backend/app/models/models.py", line 235, in <module>
+    class Role(Base):
+  File "/home/nibodh/Downloads/bidua_test/venv/lib/python3.12/site-packages/sqlalchemy/orm/decl_api.py", line 198, in __init__
+    _as_declarative(reg, cls, dict_)
+  File "/home/nibodh/Downloads/bidua_test/venv/lib/python3.12/site-packages/sqlalchemy/orm/decl_base.py", line 245, in _as_declarative
+    return _MapperConfig.setup_mapping(registry, cls, dict_, None, {})
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/nibodh/Downloads/bidua_test/venv/lib/python3.12/site-packages/sqlalchemy/orm/decl_base.py", line 326, in setup_mapping
+    return _ClassScanMapperConfig(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/nibodh/Downloads/bidua_test/venv/lib/python3.12/site-packages/sqlalchemy/orm/decl_base.py", line 577, in __init__
+    self._setup_table(table)
+  File "/home/nibodh/Downloads/bidua_test/venv/lib/python3.12/site-packages/sqlalchemy/orm/decl_base.py", line 1762, in _setup_table
+    table_cls(
+  File "<string>", line 2, in __new__
+  File "/home/nibodh/Downloads/bidua_test/venv/lib/python3.12/site-packages/sqlalchemy/util/deprecations.py", line 281, in warned
+    return fn(*args, **kwargs)  # type: ignore[no-any-return]
+           ^^^^^^^^^^^^^^^^^^^
+  File "/home/nibodh/Downloads/bidua_test/venv/lib/python3.12/site-packages/sqlalchemy/sql/schema.py", line 429, in __new__
+    return cls._new(*args, **kw)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/nibodh/Downloads/bidua_test/venv/lib/python3.12/site-packages/sqlalchemy/sql/schema.py", line 461, in _new
+    raise exc.InvalidRequestError(
+sqlalchemy.exc.InvalidRequestError: Table 'roles' is already defined for this MetaData instance.  Specify 'extend_existing=True' to redefine options and columns on an existing Table object.
