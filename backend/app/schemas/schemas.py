@@ -1107,6 +1107,15 @@ class TaskResponse(TaskBase, IDModel):
     class Config:
         from_attributes = True
 
+class PerformanceReviewUpdate(BaseModel):
+    review_type: Optional[ReviewType] = None
+    review_date: Optional[date] = None
+    reviewer_id: Optional[int] = None
+    status: Optional[ReviewStatus] = None
+    overall_rating: Optional[float] = None
+    comments: Optional[str] = None
+    goals: Optional[str] = None
+
 class TaskDependencyBase(BaseModel):
     depends_on_task_id: int
     dependency_type: DependencyType = DependencyType.finish_to_start
@@ -2097,7 +2106,7 @@ class NotificationBase(BaseModel):
 
 class NotificationCreate(NotificationBase):
     user_id: int
-    metadata: Optional[Dict[str, Any]] = None
+    metadata_json: Optional[Dict[str, Any]] = None
 
 class NotificationUpdate(BaseModel):
     is_read: Optional[bool] = None
@@ -2106,7 +2115,7 @@ class NotificationResponse(NotificationBase):
     id: int
     user_id: int
     is_read: bool
-    metadata: Optional[Dict[str, Any]] = None
+    metadata_json: Optional[Dict[str, Any]] = None
     created_at: datetime
     read_at: Optional[datetime] = None
 

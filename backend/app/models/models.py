@@ -2400,7 +2400,7 @@ class Notification(Base):
     type = Column(Enum(NotificationType), default=NotificationType.info)
     is_read = Column(Boolean, default=False)
     link = Column(String(500), nullable=True)
-    extra_data = Column(JSONB, nullable=True)
+    metadata_json = Column(JSONB, nullable=True)
     created_at = Column(TIMESTAMP(timezone=True), server_default=func.now())
     read_at = Column(TIMESTAMP(timezone=True), nullable=True)
 
