@@ -54,8 +54,14 @@ class Settings(BaseSettings):
     ALGORITHM = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
-    # CORS - Allow more origins for production
-    BACKEND_CORS_ORIGINS: List[str] = ["*"]
+    # CORS - Allow frontend origin
+    BACKEND_CORS_ORIGINS: List[str] = [
+        "http://localhost:5173",
+        "http://localhost:3000", 
+        "http://0.0.0.0:5173",
+        "https://*.replit.dev",
+        "https://*.repl.co"
+    ]
 
 # ek global object
 settings = Settings()
