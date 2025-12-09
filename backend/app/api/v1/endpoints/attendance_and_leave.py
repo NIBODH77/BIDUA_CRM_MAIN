@@ -2,6 +2,8 @@ from datetime import date, time
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select, func
+from datetime import datetime, date, time
 
 from app.core.database import get_db
 from app.crud.attendance_and_leave import attendance_crud, leave_crud
@@ -17,7 +19,7 @@ from app.schemas.schemas import (
     LeavePolicyCreate, LeavePolicyResponse,
     CompanyHolidayCreate, CompanyHolidayResponse
 )
-from app.models.models import AttendanceStatus, LeaveStatus, LeaveType
+from app.models.models import AttendanceStatus, LeaveStatus, LeaveType, AttendanceRecord, LeaveRequest
 
 router = APIRouter()
 
@@ -52,28 +54,61 @@ async def get_geofence_location(
 
 
 # ---------- Attendance Records ----------
-@router.post("/attendance/clock-in", response_model=AttendanceRecordResponse, status_code=status.HTTP_201_CREATED)
+@router.post("/attendance/clock-in", response_model=AttendanceRecordResponse)
 async def clock_in(
-    payload: AttendanceRecordCreate,
+    attendance: AttendanceRecordCreate,
     db: AsyncSession = Depends(get_db)
 ):
+    """Clock in attendance"""
     # Check if already clocked in today
-    existing = await attendance_crud.get_today_attendance(db, payload.employee_id)
-    if existing:
+    today = date.today()
+    existing = await db.execute(
+        select(AttendanceRecord).where(
+            (AttendanceRecord.employee_id == attendance.employee_id) &
+            (AttendanceRecord.date == today)
+        )
+    )
+    if existing.scalars().first():
         raise HTTPException(status_code=400, detail="Already clocked in today")
-    
-    return await attendance_crud.create_attendance_record(db, payload)
 
-@router.post("/attendance/{record_id}/clock-out", response_model=AttendanceRecordResponse)
+    db_attendance = AttendanceRecord(
+        **attendance.model_dump(),
+        date=today,
+        clock_in=datetime.now().time(),
+        status=AttendanceStatus.present
+    )
+    db.add(db_attendance)
+    await db.commit()
+    await db.refresh(db_attendance)
+    return db_attendance
+
+@router.put("/attendance/{attendance_id}/clock-out", response_model=AttendanceRecordResponse)
 async def clock_out(
-    record_id: int,
-    clock_out: time = Query(..., description="Clock-out time"),
+    attendance_id: int,
     db: AsyncSession = Depends(get_db)
 ):
-    record = await attendance_crud.clock_out_attendance(db, record_id, clock_out)
-    if not record:
+    """Clock out attendance"""
+    result = await db.execute(
+        select(AttendanceRecord).where(AttendanceRecord.id == attendance_id)
+    )
+    attendance = result.scalars().first()
+    if not attendance:
         raise HTTPException(status_code=404, detail="Attendance record not found")
-    return record
+
+    if attendance.clock_out:
+        raise HTTPException(status_code=400, detail="Already clocked out")
+
+    attendance.clock_out = datetime.now().time()
+
+    # Calculate total hours
+    clock_in_dt = datetime.combine(date.today(), attendance.clock_in)
+    clock_out_dt = datetime.combine(date.today(), attendance.clock_out)
+    total_seconds = (clock_out_dt - clock_in_dt).total_seconds()
+    attendance.total_hours = round(total_seconds / 3600, 2)
+
+    await db.commit()
+    await db.refresh(attendance)
+    return attendance
 
 @router.get("/attendance", response_model=List[AttendanceRecordResponse])
 async def list_attendance_records(
@@ -86,7 +121,7 @@ async def list_attendance_records(
     db: AsyncSession = Depends(get_db)
 ):
     return await attendance_crud.list_attendance_records(
-        db, employee_id=employee_id, start_date=start_date, 
+        db, employee_id=employee_id, start_date=start_date,
         end_date=end_date, status=status, skip=skip, limit=limit
     )
 
@@ -136,52 +171,60 @@ async def list_attendance_policies(
 # ==================== LEAVE ENDPOINTS ====================
 
 # ---------- Leave Requests ----------
-@router.post("/leave-requests", response_model=LeaveRequestResponse, status_code=status.HTTP_201_CREATED)
+@router.post("/leaves", response_model=LeaveRequestResponse)
 async def create_leave_request(
-    payload: LeaveRequestCreate,
+    leave: LeaveRequestCreate,
     db: AsyncSession = Depends(get_db)
 ):
-    return await leave_crud.create_leave_request(db, payload)
+    """Create leave request"""
+    db_leave = LeaveRequest(**leave.model_dump(), status=LeaveStatus.pending)
+    db.add(db_leave)
+    await db.commit()
+    await db.refresh(db_leave)
+    return db_leave
 
-@router.get("/leave-requests", response_model=List[LeaveRequestResponse])
-async def list_leave_requests(
-    employee_id: Optional[int] = Query(None),
-    status: Optional[LeaveStatus] = Query(None),
-    start_date: Optional[date] = Query(None),
-    end_date: Optional[date] = Query(None),
+@router.get("/leaves", response_model=List[LeaveRequestResponse])
+async def get_leave_requests(
+    employee_id: Optional[int] = None,
+    status: Optional[LeaveStatus] = None,
+    leave_type: Optional[LeaveType] = None,
     skip: int = Query(0, ge=0),
-    limit: int = Query(100, ge=1, le=200),
+    limit: int = Query(100, le=100),
     db: AsyncSession = Depends(get_db)
 ):
-    return await leave_crud.list_leave_requests(
-        db, employee_id=employee_id, status=status, 
-        start_date=start_date, end_date=end_date, skip=skip, limit=limit
-    )
+    """Get leave requests with filtering"""
+    query = select(LeaveRequest)
 
-@router.get("/leave-requests/{request_id}", response_model=LeaveRequestResponse)
-async def get_leave_request(
-    request_id: int,
-    db: AsyncSession = Depends(get_db)
-):
-    request = await leave_crud.get_leave_request(db, request_id)
-    if not request:
-        raise HTTPException(status_code=404, detail="Leave request not found")
-    return request
+    if employee_id:
+        query = query.where(LeaveRequest.employee_id == employee_id)
+    if status:
+        query = query.where(LeaveRequest.status == status)
+    if leave_type:
+        query = query.where(LeaveRequest.leave_type == leave_type)
 
-@router.patch("/leave-requests/{request_id}/status")
-async def update_leave_request_status(
-    request_id: int,
-    status: LeaveStatus,
-    approved_by: Optional[int] = Query(None),
-    comments: Optional[str] = Query(None),
+    query = query.offset(skip).limit(limit).order_by(LeaveRequest.applied_at.desc())
+    result = await db.execute(query)
+    return result.scalars().all()
+
+@router.put("/leaves/{leave_id}", response_model=LeaveRequestResponse)
+async def update_leave_request(
+    leave_id: int,
+    leave_update: LeaveRequestUpdate,
     db: AsyncSession = Depends(get_db)
 ):
-    request = await leave_crud.update_leave_request_status(
-        db, request_id, status, approved_by, comments
-    )
-    if not request:
+    """Update/Approve/Reject leave request"""
+    result = await db.execute(select(LeaveRequest).where(LeaveRequest.id == leave_id))
+    leave = result.scalars().first()
+    if not leave:
         raise HTTPException(status_code=404, detail="Leave request not found")
-    return {"message": "Leave request status updated successfully", "request": request}
+
+    for key, value in leave_update.model_dump(exclude_unset=True).items():
+        setattr(leave, key, value)
+
+    await db.commit()
+    await db.refresh(leave)
+    return leave
+
 
 # ---------- Leave Balances ----------
 @router.get("/leave-balances/{employee_id}", response_model=List[LeaveBalanceResponse])
@@ -242,7 +285,6 @@ async def get_dashboard_stats(db: AsyncSession = Depends(get_db)):
     """Get dashboard statistics for attendance and leave"""
     today_attendance = await leave_crud.get_today_attendance_count(db)
     pending_leaves = await leave_crud.get_pending_leaves_count(db)
-    # print("================== pending ===============", pending_leaves)
 
     return {
         "today_attendance": today_attendance,
@@ -259,8 +301,3 @@ async def get_employee_attendance_summary(
     """Get monthly attendance summary for an employee"""
     summary = await leave_crud.get_employee_attendance_summary(db, employee_id, month, year)
     return summary
-
-
-
-
-

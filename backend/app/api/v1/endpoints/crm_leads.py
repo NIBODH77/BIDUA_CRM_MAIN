@@ -1,504 +1,17 @@
-# # # # from typing import List, Optional
-# # # # from datetime import date
-# # # # from fastapi import APIRouter, Depends, HTTPException, Query, status
-# # # # from sqlalchemy.orm import Session
-
-# # # # from app.core.database import get_db
-# # # # from app.schemas.crm import LeadCreate, LeadUpdate, LeadOut, ActivityCreate, ActivityOut
-# # # # from app.crud import crm as crud
-# # # # # if you have auth deps, use them:
-# # # # # from app.api.deps import get_current_user, require_roles
-
-# # # # router = APIRouter()
-
-# # # # @router.post("", response_model=LeadOut, status_code=status.HTTP_201_CREATED)
-# # # # def create_lead(payload: LeadCreate, db: Session = Depends(get_db)):
-# # # #     return crud.create_lead(db, payload)
-
-# # # # @router.get("/{lead_id}", response_model=LeadOut)
-# # # # def get_lead(lead_id: int, db: Session = Depends(get_db)):
-# # # #     lead = crud.get_lead(db, lead_id)
-# # # #     if not lead: raise HTTPException(404, "Lead not found")
-# # # #     return lead
-
-# # # # @router.patch("/{lead_id}", response_model=LeadOut)
-# # # # def update_lead(lead_id: int, payload: LeadUpdate, db: Session = Depends(get_db)):
-# # # #     lead = crud.get_lead(db, lead_id)
-# # # #     if not lead: raise HTTPException(404, "Lead not found")
-# # # #     return crud.update_lead(db, lead, payload)
-
-# # # # @router.delete("/{lead_id}", status_code=status.HTTP_204_NO_CONTENT)
-# # # # def delete_lead(lead_id: int, db: Session = Depends(get_db)):
-# # # #     lead = crud.get_lead(db, lead_id)
-# # # #     if not lead: raise HTTPException(404, "Lead not found")
-# # # #     crud.delete_lead(db, lead); return
-
-# # # # @router.get("", response_model=List[LeadOut])
-# # # # def list_leads(
-# # # #     db: Session = Depends(get_db),
-# # # #     q: Optional[str] = None,
-# # # #     status: Optional[str] = None,
-# # # #     stage: Optional[str] = None,
-# # # #     assigned_to: Optional[int] = Query(None),
-# # # #     min_value: Optional[float] = None,
-# # # #     max_value: Optional[float] = None,
-# # # #     next_follow_up_from: Optional[date] = None,
-# # # #     next_follow_up_to: Optional[date] = None,
-# # # #     order_by: str = "created_at",
-# # # #     order_dir: str = Query("desc", pattern="^(asc|desc)$"),
-# # # #     skip: int = Query(0, ge=0),
-# # # #     limit: int = Query(20, ge=1, le=200),
-# # # # ):
-# # # #     rows, _ = crud.list_leads(
-# # # #         db, q, status, stage, assigned_to, min_value, max_value,
-# # # #         next_follow_up_from, next_follow_up_to, order_by, order_dir, skip, limit
-# # # #     )
-# # # #     return rows
-
-# # # # # --- Activities (nested) ---
-# # # # @router.post("/{lead_id}/activities", response_model=ActivityOut, status_code=status.HTTP_201_CREATED)
-# # # # def add_activity(lead_id: int, payload: ActivityCreate, db: Session = Depends(get_db)):
-# # # #     if payload.lead_id != lead_id:
-# # # #         raise HTTPException(400, "lead_id mismatch")
-# # # #     return crud.create_activity(db, payload)
-
-# # # # @router.get("/{lead_id}/activities", response_model=List[ActivityOut])
-# # # # def list_activities(lead_id: int, db: Session = Depends(get_db)):
-# # # #     return crud.list_activities_for_lead(db, lead_id)
-
-
-
-
-
-
-# # # from typing import List, Optional
-# # # from datetime import date
-# # # from fastapi import APIRouter, Depends, HTTPException, Query, status
-# # # from sqlalchemy.ext.asyncio import AsyncSession
-
-# # # from app.core.database import get_db
-# # # from app.schemas.crm import LeadCreate, LeadUpdate, LeadOut, ActivityCreate, ActivityOut
-# # # from app.crud import crm as crud
-# # # # from app.api.deps import get_current_user, require_roles
-
-# # # router = APIRouter()
-
-# # # # -------------------------------
-# # # # Leads
-# # # # -------------------------------
-
-# # # @router.post("", response_model=LeadOut, status_code=status.HTTP_201_CREATED)
-# # # async def create_lead(payload: LeadCreate, db: AsyncSession = Depends(get_db)):
-# # #     return await crud.create_lead(db, payload)
-
-# # # @router.get("/{lead_id}", response_model=LeadOut)
-# # # async def get_lead(lead_id: int, db: AsyncSession = Depends(get_db)):
-# # #     lead = await crud.get_lead(db, lead_id)
-# # #     if not lead:
-# # #         raise HTTPException(404, "Lead not found")
-# # #     return lead
-
-# # # @router.patch("/{lead_id}", response_model=LeadOut)
-# # # async def update_lead(lead_id: int, payload: LeadUpdate, db: AsyncSession = Depends(get_db)):
-# # #     lead = await crud.get_lead(db, lead_id)
-# # #     if not lead:
-# # #         raise HTTPException(404, "Lead not found")
-# # #     return await crud.update_lead(db, lead, payload)
-
-# # # @router.delete("/{lead_id}", status_code=status.HTTP_204_NO_CONTENT)
-# # # async def delete_lead(lead_id: int, db: AsyncSession = Depends(get_db)):
-# # #     lead = await crud.get_lead(db, lead_id)
-# # #     if not lead:
-# # #         raise HTTPException(404, "Lead not found")
-# # #     await crud.delete_lead(db, lead)
-# # #     return
-
-# # # @router.get("", response_model=List[LeadOut])
-# # # async def list_leads(
-# # #     db: AsyncSession = Depends(get_db),
-# # #     q: Optional[str] = None,
-# # #     status: Optional[str] = None,
-# # #     stage: Optional[str] = None,
-# # #     assigned_to: Optional[int] = Query(None),
-# # #     min_value: Optional[float] = None,
-# # #     max_value: Optional[float] = None,
-# # #     next_follow_up_from: Optional[date] = None,
-# # #     next_follow_up_to: Optional[date] = None,
-# # #     order_by: str = "created_at",
-# # #     order_dir: str = Query("desc", pattern="^(asc|desc)$"),
-# # #     skip: int = Query(0, ge=0),
-# # #     limit: int = Query(20, ge=1, le=200),
-# # # ):
-# # #     rows, _ = await crud.list_leads(
-# # #         db, q, status, stage, assigned_to, min_value, max_value,
-# # #         next_follow_up_from, next_follow_up_to, order_by, order_dir, skip, limit
-# # #     )
-# # #     return rows
-
-# # # # -------------------------------
-# # # # Activities (nested)
-# # # # -------------------------------
-
-# # # @router.post("/{lead_id}/activities", response_model=ActivityOut, status_code=status.HTTP_201_CREATED)
-# # # async def add_activity(lead_id: int, payload: ActivityCreate, db: AsyncSession = Depends(get_db)):
-# # #     if payload.lead_id != lead_id:
-# # #         raise HTTPException(400, "lead_id mismatch")
-# # #     return await crud.create_activity(db, payload)
-
-# # # @router.get("/{lead_id}/activities", response_model=List[ActivityOut])
-# # # async def list_activities(lead_id: int, db: AsyncSession = Depends(get_db)):
-# # #     return await crud.list_activities_for_lead(db, lead_id)
-
-
-
-
-
-
-# # from __future__ import annotations
-
-# # from typing import List, Optional
-# # from datetime import date, datetime
-
-# # from fastapi import APIRouter, Depends, HTTPException, Query, status
-# # from sqlalchemy import select, or_, and_, func
-# # from sqlalchemy.ext.asyncio import AsyncSession
-
-# # from app.core.database import get_db
-# # from app.models.models import Lead, LeadActivity, Employee
-# # from app.schemas.schemas import (
-# #     LeadCreate,
-# #     LeadResponse,
-# #     LeadActivityCreate,
-# #     LeadActivityResponse,
-# # )
-
-# # router = APIRouter(prefix="/crm/leads", tags=["CRM - Leads"])
-
-
-# # # -------------------------------
-# # # Helpers
-# # # -------------------------------
-
-# # def _ilike_search(term: Optional[str]):
-# #     if not term:
-# #         return None
-# #     like = f"%{term}%"
-# #     return or_(
-# #         Lead.name.ilike(like),
-# #         Lead.email.ilike(like),
-# #         Lead.phone.ilike(like),
-# #         Lead.company.ilike(like),
-# #         Lead.source.ilike(like),
-# #         Lead.notes.ilike(like),
-# #     )
-
-
-# # # -------------------------------
-# # # List Leads (with filters)
-# # # -------------------------------
-# # @router.get("/", response_model=List[LeadResponse])
-# # async def list_leads(
-# #     *,
-# #     db: AsyncSession = Depends(get_db),
-# #     q: Optional[str] = Query(None, description="Free-text search on lead fields"),
-# #     status: Optional[str] = Query(None),
-# #     stage: Optional[str] = Query(None),
-# #     assigned_to_employee_id: Optional[int] = Query(None),
-# #     employee_id: Optional[int] = Query(None),
-# #     min_value: Optional[float] = Query(None),
-# #     max_value: Optional[float] = Query(None),
-# #     last_contact_from: Optional[date] = Query(None),
-# #     last_contact_to: Optional[date] = Query(None),
-# #     order_by: Optional[str] = Query("created_at", description="created_at|updated_at|value|lead_score"),
-# #     order_dir: Optional[str] = Query("desc", description="asc|desc"),
-# #     skip: int = 0,
-# #     limit: int = 50,
-# # ):
-# #     filters = []
-# #     if status:
-# #         filters.append(Lead.status == status)
-# #     if stage:
-# #         filters.append(Lead.stage == stage)
-# #     if assigned_to_employee_id:
-# #         filters.append(Lead.assigned_to_employee_id == assigned_to_employee_id)
-# #     if employee_id:
-# #         filters.append(Lead.employee_id == employee_id)
-# #     if min_value is not None:
-# #         filters.append(Lead.value >= min_value)
-# #     if max_value is not None:
-# #         filters.append(Lead.value <= max_value)
-# #     if last_contact_from:
-# #         filters.append(Lead.last_contact >= last_contact_from)
-# #     if last_contact_to:
-# #         filters.append(Lead.last_contact <= last_contact_to)
-
-# #     search_clause = _ilike_search(q)
-# #     if search_clause is not None:
-# #         filters.append(search_clause)
-
-# #     stmt = select(Lead).where(and_(*filters)) if filters else select(Lead)
-
-# #     # ordering
-# #     order_map = {
-# #         "created_at": Lead.created_at,
-# #         "updated_at": Lead.updated_at,
-# #         "value": Lead.value,
-# #         "lead_score": Lead.lead_score,
-# #     }
-# #     order_col = order_map.get(order_by, Lead.created_at)
-# #     stmt = stmt.order_by(order_col.asc() if order_dir == "asc" else order_col.desc())
-# #     stmt = stmt.offset(skip).limit(limit)
-
-# #     result = await db.execute(stmt)
-# #     return result.scalars().all()
-
-
-# # # -------------------------------
-# # # Get Lead by ID
-# # # -------------------------------
-# # @router.get("/{lead_id}", response_model=LeadResponse)
-# # async def get_lead(
-# #     *,
-# #     db: AsyncSession = Depends(get_db),
-# #     lead_id: int,
-# # ):
-# #     lead = await db.get(Lead, lead_id)
-# #     if not lead:
-# #         raise HTTPException(status_code=404, detail="Lead not found")
-# #     return lead
-
-
-# # # # -------------------------------
-# # # # Create Lead
-# # # # -------------------------------
-# # # @router.post("/", response_model=LeadResponse, status_code=status.HTTP_201_CREATED)
-# # # async def create_lead(
-# # #     *,
-# # #     db: AsyncSession = Depends(get_db),
-# # #     payload: LeadCreate,
-# # # ):
-# # #     lead = Lead(
-# # #         name=payload.name,
-# # #         email=payload.email,
-# # #         phone=payload.phone,
-# # #         company=payload.company,
-# # #         status=payload.status,
-# # #         stage=payload.stage,
-# # #         value=payload.value,
-# # #         source=payload.source,
-# # #         last_contact=payload.last_contact,
-# # #         next_follow_up=payload.next_follow_up,
-# # #         notes=payload.notes,
-# # #         lead_score=payload.lead_score or 0,
-# # #         assigned_to_employee_id=payload.assigned_to_employee_id,
-# # #         # If you use "employee_id" for owner, expose it in LeadCreate and set here
-# # #     )
-# # #     db.add(lead)
-# # #     await db.commit()
-# # #     await db.refresh(lead)
-# # #     return lead
-
-
-# # @router.post("/", response_model=LeadResponse, status_code=status.HTTP_201_CREATED)
-# # async def create_lead(
-# #     *,
-# #     db: AsyncSession = Depends(get_db),
-# #     payload: LeadCreate,
-# # ):
-# #     lead = Lead(
-# #         name=payload.name,
-# #         email=payload.email,
-# #         phone=payload.phone,
-# #         company=payload.company,
-# #         status=payload.status,
-# #         stage=payload.stage,
-# #         value=payload.value,
-# #         source=payload.source,
-# #         last_contact=payload.last_contact,
-# #         next_follow_up=payload.next_follow_up,
-# #         notes=payload.notes,
-# #         lead_score=payload.lead_score or 0,
-# #         assigned_to_employee_id=payload.assigned_to_employee_id,
-        
-# #     )
-# #     db.add(lead)
-# #     await db.commit()
-# #     await db.refresh(lead)
-
-# #     return {
-# #         "success": True,
-# #         "message": "Lead created successfully",
-# #         "data": lead
-# #     }
-
-
-
-
-
-# # # -------------------------------
-# # # Update Lead
-# # # -------------------------------
-# # @router.put("/{lead_id}", response_model=LeadResponse)
-# # async def update_lead(
-# #     *,
-# #     db: AsyncSession = Depends(get_db),
-# #     lead_id: int,
-# #     payload: LeadCreate,  # You can define a separate LeadUpdate if you prefer partial updates
-# # ):
-# #     lead = await db.get(Lead, lead_id)
-# #     if not lead:
-# #         raise HTTPException(status_code=404, detail="Lead not found")
-
-# #     # update fields
-# #     for field in (
-# #         "name", "email", "phone", "company", "status", "stage", "value", "source",
-# #         "last_contact", "next_follow_up", "notes", "lead_score", "assigned_to_employee_id"
-# #     ):
-# #         setattr(lead, field, getattr(payload, field))
-
-# #     lead.updated_at = datetime.utcnow()
-# #     await db.commit()
-# #     await db.refresh(lead)
-# #     return lead
-
-
-# # # -------------------------------
-# # # Patch Lead (partial update)
-# # # -------------------------------
-# # from pydantic import BaseModel
-# # class LeadUpdate(BaseModel):
-# #     name: Optional[str] = None
-# #     email: Optional[str] = None
-# #     phone: Optional[str] = None
-# #     company: Optional[str] = None
-# #     status: Optional[str] = None
-# #     stage: Optional[str] = None
-# #     value: Optional[float] = None
-# #     source: Optional[str] = None
-# #     last_contact: Optional[date] = None
-# #     next_follow_up: Optional[date] = None
-# #     notes: Optional[str] = None
-# #     lead_score: Optional[int] = None
-# #     assigned_to_employee_id: Optional[int] = None
-
-
-# # @router.patch("/{lead_id}", response_model=LeadResponse)
-# # async def patch_lead(
-# #     *,
-# #     db: AsyncSession = Depends(get_db),
-# #     lead_id: int,
-# #     payload: LeadUpdate,
-# # ):
-# #     lead = await db.get(Lead, lead_id)
-# #     if not lead:
-# #         raise HTTPException(status_code=404, detail="Lead not found")
-
-# #     for k, v in payload.model_dump(exclude_unset=True).items():
-# #         setattr(lead, k, v)
-
-# #     lead.updated_at = datetime.utcnow()
-# #     await db.commit()
-# #     await db.refresh(lead)
-# #     return lead
-
-
-# # # -------------------------------
-# # # Delete Lead
-# # # -------------------------------
-# # @router.delete("/{lead_id}", status_code=status.HTTP_204_NO_CONTENT)
-# # async def delete_lead(
-# #     *,
-# #     db: AsyncSession = Depends(get_db),
-# #     lead_id: int,
-# # ):
-# #     lead = await db.get(Lead, lead_id)
-# #     if not lead:
-# #         raise HTTPException(status_code=404, detail="Lead not found")
-# #     await db.delete(lead)
-# #     await db.commit()
-# #     return None
-
-
-# # # -------------------------------
-# # # Lead Activities (sub-resource)
-# # # -------------------------------
-# # @router.get("/{lead_id}/activities", response_model=List[LeadActivityResponse])
-# # async def list_lead_activities(
-# #     *,
-# #     db: AsyncSession = Depends(get_db),
-# #     lead_id: int,
-# #     skip: int = 0,
-# #     limit: int = 100,
-# # ):
-# #     # Ensure lead exists
-# #     if not await db.get(Lead, lead_id):
-# #         raise HTTPException(status_code=404, detail="Lead not found")
-
-# #     stmt = (
-# #         select(LeadActivity)
-# #         .where(LeadActivity.lead_id == lead_id)
-# #         .order_by(LeadActivity.created_at.desc())
-# #         .offset(skip).limit(limit)
-# #     )
-# #     result = await db.execute(stmt)
-# #     return result.scalars().all()
-
-
-# # @router.post("/{lead_id}/activities", response_model=LeadActivityResponse, status_code=status.HTTP_201_CREATED)
-# # async def add_lead_activity(
-# #     *,
-# #     db: AsyncSession = Depends(get_db),
-# #     lead_id: int,
-# #     payload: LeadActivityCreate,
-# # ):
-# #     # Safety: enforce path lead_id equals payload.lead_id
-# #     if payload.lead_id != lead_id:
-# #         raise HTTPException(status_code=400, detail="lead_id mismatch in path and body")
-
-# #     if not await db.get(Lead, lead_id):
-# #         raise HTTPException(status_code=404, detail="Lead not found")
-
-# #     # Optionally validate employee_id exists
-# #     if payload.employee_id and not await db.get(Employee, payload.employee_id):
-# #         raise HTTPException(status_code=404, detail="Employee (activity owner) not found")
-
-# #     act = LeadActivity(
-# #         lead_id=payload.lead_id,
-# #         employee_id=payload.employee_id,
-# #         activity_type=payload.activity_type,
-# #         subject=payload.subject,
-# #         description=payload.description,
-# #         duration_minutes=payload.duration_minutes,
-# #         outcome=payload.outcome,
-# #         scheduled_at=payload.scheduled_at,
-# #         completed_at=payload.completed_at,
-# #         created_at=datetime.utcnow(),
-# #     )
-# #     db.add(act)
-# #     await db.commit()
-# #     await db.refresh(act)
-# #     return act
-
-
-
-
-
-# app/api/v1/endpoints/crm_lead.py
 from __future__ import annotations
 
 from typing import List, Optional
-from datetime import date
-
+from datetime import date, datetime
 from fastapi import APIRouter, Depends, HTTPException, Query, status, Response
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func,and_
 from sqlalchemy.orm import Session
-from app.models.models import Employee, Lead, User
-
+from app.models.models import Employee, Lead, User, LeadStatus, LeadStage
 from app.core.database import get_db
 from app.crud.crm_lead import crm_lead
 from app.schemas.schemas import (
     LeadCreate,
+    LeadUpdate,
     LeadResponse,
     LeadActivityCreate,
     LeadActivityResponse,
@@ -508,7 +21,6 @@ from app.core.auth import get_current_user
 
 
 router = APIRouter()
-
 
 
 
@@ -531,86 +43,6 @@ class LeadUpdate(BaseModel):
     notes: Optional[str] = None
     lead_score: Optional[int] = None
     assigned_to_employee_id: Optional[int] = None
-
-
-
-
-# # -------------------------------
-# # List Leads (with filters) - SINGLE ENDPOINT
-# # -------------------------------
-# @router.get("/", response_model=dict)
-# async def list_leads(
-#     *,
-#     db: AsyncSession = Depends(get_db),
-#     q: Optional[str] = Query(None, description="Free-text search on lead fields"),
-#     status: Optional[str] = Query(None),
-#     stage: Optional[str] = Query(None),
-#     assigned_to_employee_id: Optional[int] = Query(None),
-#     employee_id: Optional[int] = Query(None),
-#     min_value: Optional[float] = Query(None),
-#     max_value: Optional[float] = Query(None),
-#     last_contact_from: Optional[date] = Query(None),
-#     last_contact_to: Optional[date] = Query(None),
-#     order_by: Optional[str] = Query("created_at", description="created_at|updated_at|value|lead_score"),
-#     order_dir: Optional[str] = Query("desc", description="asc|desc"),
-#     skip: int = 0,
-#     limit: int = 50,
-# ):
-#     rows, total = await crm_lead.list_leads(
-#         db,
-#         q=q,
-#         status=status,
-#         stage=stage,
-#         assigned_to_employee_id=assigned_to_employee_id,
-#         employee_id=employee_id,
-#         min_value=min_value,
-#         max_value=max_value,
-#         last_contact_from=last_contact_from,
-#         last_contact_to=last_contact_to,
-#         order_by=order_by or "created_at",
-#         order_dir=order_dir or "desc",
-#         skip=skip,
-#         limit=limit,
-#     )
-
-#     # Convert SQLAlchemy objects to dictionaries
-#     leads_data = []
-#     for lead in rows:
-#         lead_dict = {
-#             'id': str(lead.id),
-#             'status': lead.status,
-#             'name': lead.name,
-#             'email': lead.email,
-#             'phone': lead.phone,
-#             'company': lead.company,
-#             'stage': lead.stage,
-#             'value': float(lead.value) if lead.value else 0.0,
-#             'source': lead.source
-#         }
-#         leads_data.append(lead_dict)
-
-#     # Calculate hot leads count from ALL leads (not just filtered ones)
-#     # Agar aap filtered hot leads count chahiye, to rows se calculate karo:
-#     # filtered_hot_count = sum(1 for lead in rows if lead.status == 'hot')
-
-
-
-    
-    
-#     total_hot_query = sum(1 for lead in rows if lead.status == 'hot')
-
-
-#     # Agar total hot leads count chahiye (sab leads mein se), to alag query karo:
-#     total_hot_query = select(func.count(Lead.id)).where(Lead.status == 'hot')
-#     total_hot_result = await db.execute(total_hot_query)
-#     total_hot_count = total_hot_result.scalar_one()
-
-#     return {
-#         "leads": leads_data,
-#         "total": total,
-#         "hot_leads_count": total_hot_count,  # ya filtered_hot_count - choose as needed
-#         "filtered_count": len(rows)
-#     }
 
 
 
@@ -698,9 +130,6 @@ async def list_leads(
         "filtered_hot_leads_count": filtered_hot_count,  # New field for filtered hot count
         "filtered_count": len(rows)
     }
-
-
-
 
 
 
@@ -842,11 +271,6 @@ async def get_sales_pipeline_dashboard(db: AsyncSession = Depends(get_db)):
 
 
 
-
-
-
-
-
 # -------------------------------
 # Get Lead by ID
 # -------------------------------
@@ -861,7 +285,6 @@ async def get_lead(
         raise HTTPException(status_code=404, detail="Lead not found")
     return lead
 
-
 # -------------------------------
 # Create Lead
 # -------------------------------
@@ -873,8 +296,6 @@ async def create_lead(
 ):
     lead = await crm_lead.create_lead(db, payload)
     return lead
-
-
 
 
 
@@ -913,32 +334,6 @@ async def update_lead_full_put(
         raise HTTPException(status_code=400, detail=str(e))
 
     return lead
-
-
-
-# # -------------------------------
-# # Patch Lead (partial)
-# # -------------------------------
-# @router.patch("/{lead_id}", response_model=LeadResponse)
-# async def patch_lead(
-#     *,
-#     db: AsyncSession = Depends(get_db),
-#     lead_id: int,
-#     payload: LeadUpdate,
-# ):
-#     lead = await crm_lead.get_lead(db, lead_id)
-#     if not lead:
-#         raise HTTPException(status_code=404, detail="Lead not found")
-
-#     lead = await crm_lead.update_lead_partial(db, lead, payload.model_dump(exclude_unset=True))
-#     return lead
-
-
-
-# ======================================= Automatic + Manual Merge Below ===============================
-
-
-
 
 
 
@@ -1025,9 +420,6 @@ async def patch_lead(
 
 
 
-
-
-
 # -------------------------------
 # Delete Lead
 # -------------------------------
@@ -1082,9 +474,6 @@ async def add_lead_activity(
         # propagate user-facing errors from CRUD
         raise HTTPException(status_code=404, detail=str(e))
     return act
-
-
-
 
 
 
