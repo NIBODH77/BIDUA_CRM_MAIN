@@ -20,6 +20,13 @@ from app.schemas.schemas import (
     CompanyHolidayCreate, CompanyHolidayResponse
 )
 from app.models.models import AttendanceStatus, LeaveStatus, LeaveType, AttendanceRecord, LeaveRequest
+from pydantic import BaseModel
+
+class LeaveRequestUpdate(BaseModel):
+    status: Optional[LeaveStatus] = None
+    approved_by: Optional[int] = None
+    approved_at: Optional[datetime] = None
+    rejection_reason: Optional[str] = None
 
 router = APIRouter()
 

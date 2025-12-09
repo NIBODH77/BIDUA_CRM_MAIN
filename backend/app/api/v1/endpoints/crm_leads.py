@@ -11,7 +11,6 @@ from app.core.database import get_db
 from app.crud.crm_lead import crm_lead
 from app.schemas.schemas import (
     LeadCreate,
-    LeadUpdate,
     LeadResponse,
     LeadActivityCreate,
     LeadActivityResponse,

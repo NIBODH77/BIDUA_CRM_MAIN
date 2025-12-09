@@ -9,7 +9,7 @@ import uuid
 from sqlalchemy import (
     Column, String, Text, DateTime, Date, Boolean, ForeignKey,
     Integer, Numeric, Enum, JSON, UniqueConstraint, TIMESTAMP, ARRAY, Float,
-    CheckConstraint, BigInteger, Table, Time
+    CheckConstraint, BigInteger, Table, Time, Index
 )
 from sqlalchemy.dialects.postgresql import INET, JSONB
 from sqlalchemy.orm import relationship
@@ -197,19 +197,8 @@ class AccessLevel(str, enum.Enum):
 # Association Tables
 # --------------------------
 
-role_permission = Table(
-    "role_permission",
-    Base.metadata,
-    Column("role_id", Integer, ForeignKey("roles.id", ondelete="CASCADE"), primary_key=True),
-    Column("permission_id", Integer, ForeignKey("permissions.id", ondelete="CASCADE"), primary_key=True),
-)
-
-user_role = Table(
-    "user_role",
-    Base.metadata,
-    Column("user_id", Integer, ForeignKey("users.id", ondelete="CASCADE"), primary_key=True),
-    Column("role_id", Integer, ForeignKey("roles.id", ondelete="CASCADE"), primary_key=True),
-)
+# role_permission and user_role tables are defined in app.models.auth.role
+from app.models.auth.role import role_permission, user_role
 
 
 # User model is imported from app.models.auth.user
